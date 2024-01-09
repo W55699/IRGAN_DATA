@@ -4,9 +4,9 @@
 import torch
 class Config():
     def __init__(self):
-        self.epochs = 200
+        self.epochs = 100
         self.epochs_g = 50
-        self.epochs_d = 100
+        self.epochs_d = 80
         self.batch_size = 64
         self.eta_G = 1e-3   # Learning Rate for generator
         self.eta_D = 1e-3   # Learning Rate for discriminator
