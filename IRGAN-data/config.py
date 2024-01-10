@@ -10,7 +10,7 @@ class Config():
         self.batch_size = 64
         self.eta_G = 1e-3   # Learning Rate for generator
         self.eta_D = 1e-3   # Learning Rate for discriminator
-        self.dir_path = "./data/"
+        self.dir_path = "./data/ml-100k"
         self.emb_dim = 5
         self.weight_decay = 1e-5
         self.weight_decay_g = 1e-5
