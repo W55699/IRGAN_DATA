@@ -138,7 +138,7 @@ class DataProvider():
     def __init__(self, device = "cpu"):
         self.device = device
     
-    def prepare_data_for_generator(self, users, batch_size = 64):
+    def prepare_data_for_generator(self, users, batch_size = 2):
         """Prepare training data for generator.
         
         Provides batches of users for generator.
@@ -151,7 +151,7 @@ class DataProvider():
             A DataLoader which yields batches of users.
         """
         users = TensorDataset(torch.from_numpy(users).to(self.device))
-        return DataLoader(users, batch_size = batch_size, shuffle=True)
+        return DataLoader(users, batch_size = batch_size, shuffle=True,num_workers=3)
     
     def prepare_data_for_discriminator(self, generator, real_ui_pairs, k = 128, temperature=0.2, lambda_bought=0, batch_size = 64):
         """Prepares training data for discriminator.
