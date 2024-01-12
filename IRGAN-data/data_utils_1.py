@@ -194,7 +194,7 @@ class DataProvider():
     
         # Get Negative Data
         fake_users = real_users.unique()
-        fake_users_sample =self.random_select_percentage_elements_from_tensor(fake_users,fake_sample)
+        fake_users_sample =random_select_percentage_elements_from_tensor(fake_users,fake_sample)
         fake_items, _, _= generator.sample_items_for_users(fake_users_sample, k = k, temperature = temperature, lambda_bought = lambda_bought)
         fake_users_sample = fake_users_sample.view(-1,1).expand_as(fake_items).contiguous()
         fake_users_sample = fake_users_sample.view(-1)
