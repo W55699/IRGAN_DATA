@@ -152,7 +152,7 @@ class RecDataset():
 class DataProvider():
     """Provides training datasets
     """
-    def __init__(self, device = "cpu"):
+    def __init__(self, device = "cuda:0" if torch.cuda.is_available() else 'cpu'):
         self.device = device
     
     def prepare_data_for_generator(self, users, batch_size = 64):
