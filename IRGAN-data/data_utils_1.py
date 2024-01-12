@@ -12,22 +12,7 @@ import os
 
 RATING_NAMES = ["user", "item"]
 
-def random_select_percentage_elements_from_tensor(tensor, percentage):
-    # 确保选择的元素数量不超过原始张量中的元素数量
-    percentage = min(percentage, 1.0)
-    # 计算要选择的元素的数量
 
-    num_elements_to_select = int(tensor.numel() * percentage)
-    
-    # 生成不重复的随机索引
-    random_indices = torch.randperm(tensor.numel())[:num_elements_to_select]
-    
-    # 使用选定的索引从原始张量中获取元素
-    selected_elements = torch.index_select(tensor.view(-1), 0, random_indices)
-    
-    selected_elements_sorted, _ = torch.sort(selected_elements.view(-1))
-    
-    return selected_elements_sorted
 
 class RecDataset():
     """A dataset class storing users, items and user-item interactions.
@@ -194,7 +179,14 @@ class DataProvider():
     
         # Get Negative Data
         fake_users = real_users.unique()
-        fake_users_sample =random_select_percentage_elements_from_tensor(fake_users,fake_sample)
+
+        # 确保选择的元素数量不超过原始张量中的元素数量
+        fake_sample = min(fake_sample, 1.0)
+        # 计算要选择的元素的数量
+
+        fake_select = int(fake_users.numel() * fake_sample)
+
+        fake_users_sample = torch.topk(fake_users.view(-1), k=fake_select, largest=False).values
         fake_items, _, _= generator.sample_items_for_users(fake_users_sample, k = k, temperature = temperature, lambda_bought = lambda_bought)
         fake_users_sample = fake_users_sample.view(-1,1).expand_as(fake_items).contiguous()
         fake_users_sample = fake_users_sample.view(-1)
