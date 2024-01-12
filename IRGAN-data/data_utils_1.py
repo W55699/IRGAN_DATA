@@ -153,7 +153,7 @@ class DataProvider():
         users = TensorDataset(torch.from_numpy(users).to(self.device))
         return DataLoader(users, batch_size = batch_size, shuffle=True)
     
-    def prepare_data_for_discriminator(self, generator, real_ui_pairs, k = 128, temperature=0.2, lambda_bought=0, batch_size = 64):
+    def prepare_data_for_discriminator(self, generator, real_ui_pairs, k = 128, temperature=0.2, lambda_bought=0, batch_size = 64, fake_sample=1):
         """Prepares training data for discriminator.
         
         Provides real user-item pairs mixed with fake user-item pairs in batches.
@@ -177,13 +177,14 @@ class DataProvider():
     
         # Get Negative Data
         fake_users = real_users.unique()
-        fake_items, _, _= generator.sample_items_for_users(fake_users, k = k, temperature = temperature, lambda_bought = lambda_bought)
-        fake_users = fake_users.view(-1,1).expand_as(fake_items).contiguous()
-        fake_users = fake_users.view(-1)
+        fake_users_sample =self.random_select_percentage_elements_from_tensor(fake_users,fake_sample)
+        fake_items, _, _= generator.sample_items_for_users(fake_users_sample, k = k, temperature = temperature, lambda_bought = lambda_bought)
+        fake_users_sample = fake_users_sample.view(-1,1).expand_as(fake_items).contiguous()
+        fake_users_sample = fake_users_sample.view(-1)
         fake_items = fake_items.view(-1)
-        fake_labels = torch.zeros(len(fake_users)).float().to(self.device)
+        fake_labels = torch.zeros(len(fake_users_sample)).float().to(self.device)
         
-        users = torch.cat((real_users, fake_users), 0)
+        users = torch.cat((real_users, fake_users_sample), 0)
         items = torch.cat((real_items, fake_items), 0)
         labels = torch.cat((real_labels, fake_labels), 0)
         dataset = TensorDataset(users, items, labels)
@@ -319,5 +320,21 @@ class DataProvider():
 
         
         return fake_users_transformation,fake_items_transformation
+    def random_select_percentage_elements_from_tensor(tensor, percentage):
+        # 确保选择的元素数量不超过原始张量中的元素数量
+        percentage = min(percentage, 1.0)
+        # 计算要选择的元素的数量
+
+        num_elements_to_select = int(tensor.numel() * percentage)
+    
+        # 生成不重复的随机索引
+        random_indices = torch.randperm(tensor.numel())[:num_elements_to_select]
+    
+        # 使用选定的索引从原始张量中获取元素
+        selected_elements = torch.index_select(tensor.view(-1), 0, random_indices)
+    
+        selected_elements_sorted, _ = torch.sort(selected_elements.view(-1))
+    
+        return selected_elements_sorted
 
 
