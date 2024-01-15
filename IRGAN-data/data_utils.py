@@ -45,6 +45,7 @@ class RecDataset():
         self._rating_test = rating_test
         
         self._users, self._items = self._extract_users_and_items(self._rating_train.append(self._rating_test))
+        self._users_list, self._items_list = self._extract_users_and_items_list(self._rating_train)
         self._bought_dict = self.get_interaction_records()
     
     def _build_df_id_transformer(self, df, col):
@@ -73,6 +74,20 @@ class RecDataset():
         users = rating.user.unique()
         items = rating.item.unique()
         return users, items
+    def _extract_users_and_items_list(self, rating):
+        """Extract users and items from rating data
+        
+        Args:
+            rating: rating records in pandas DataFrame.
+           
+        Returns:
+            users: users stored in np.ndarray 
+            items: items stored in np.ndarray
+        """
+        users_list = rating.user.tolist()
+        items_list = rating.item.tolist()
+        return users_list, items_list
+    
     
     def get_interaction_records(self, method = "train"):
         '''Gets interaction records for each user
@@ -132,6 +147,11 @@ class RecDataset():
             return self._rating_train.user.to_numpy(), self._rating_train.item.to_numpy()
         else:
             return self._rating_test.user.to_numpy(), self._rating_test.item.to_numpy()
+    def get_users_list(self):
+        return self._users_list
+    
+    def get_items_list(self):
+        return self._items_list
             
 class DataProvider():
     """Provides training datasets
@@ -306,7 +326,7 @@ class DataProvider():
         
        
 
-        user_transform_value = len(real_users_uni)+1  # 递增值
+        user_transform_value = len(real_users_uni)  # 递增值
 
         # 使用字典构建映射关系，将原始列表中的每个值映射到递增的值
         fake_users_mapping = {}
