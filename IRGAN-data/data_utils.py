@@ -30,7 +30,9 @@ class RecDataset():
         rating_train = rating_train[rating_train.rating > 3.99]
         rating_test = pd.read_csv(os.path.join(dir_path,"movielens-100k-test.txt"), names = RATING_NAMES, sep='\t')
         rating_test = rating_test[rating_test.rating > 3.99]
-        
+
+        self._rating_train_ori = rating_train
+        self._users_list, self._items_list = self._extract_users_and_items_list(self._rating_train_ori)
         # Build ID transformer
         user_id_transformer = self._build_df_id_transformer(rating_train.append(rating_test),"user")
         item_id_transformer = self._build_df_id_transformer(rating_train.append(rating_test),"item")
@@ -45,7 +47,7 @@ class RecDataset():
         self._rating_test = rating_test
         
         self._users, self._items = self._extract_users_and_items(self._rating_train.append(self._rating_test))
-        self._users_list, self._items_list = self._extract_users_and_items_list(self._rating_train)
+       
         self._bought_dict = self.get_interaction_records()
     
     def _build_df_id_transformer(self, df, col):
@@ -297,11 +299,12 @@ class DataProvider():
             A DataLoader which yields batches of (user, item, label) pairs.
         """   
         # Get Positive Data
-        real_users, real_items = real_ui_pairs
-        real_users = torch.tensor(real_users).to(self.device)
-        real_items = torch.tensor(real_items).to(self.device)
+        real_users_list, real_items_list = real_ui_pairs
+        real_items_uni = list(set(real_items_list))
+
+        real_users = torch.tensor(real_users_list).to(self.device)
+        real_items = torch.tensor(real_items_list).to(self.device)
       
-    
         # Get Negative Data
         real_users_uni= real_users.unique()
         fake_users_indices = torch.randperm(real_users_uni.size(0))[:fake_users_num]
@@ -317,7 +320,8 @@ class DataProvider():
         fake_items_ori = fake_items.tolist()
 
         for item in fake_items_ori:
-            fake_items_list.append(list(set(item)))
+            item_real = [x for x in item if x in real_items_uni]
+            fake_items_list.append(list(set(item_real)))
         for user,item_1 in zip(fake_users_ori,fake_items_list):
             fake_users_list = fake_users_list+[user]*len(item_1)
         
@@ -326,7 +330,7 @@ class DataProvider():
         
        
 
-        user_transform_value = len(real_users_uni)  # 递增值
+        user_transform_value = len(real_users_uni)+1  # 递增值
 
         # 使用字典构建映射关系，将原始列表中的每个值映射到递增的值
         fake_users_mapping = {}
