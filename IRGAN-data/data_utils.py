@@ -280,7 +280,7 @@ class DataProvider():
         dataset = TensorDataset(train_users,train_pos_items,train_neg_items)
         return DataLoader(dataset, batch_size = batch_size, shuffle=False)
     
-    def geneate_synthesis_data(self, generator, real_ui_pairs, k = 128, temperature=0.2, lambda_bought=0, fake_users_num= 50):
+    def geneate_synthesis_data(self, generator, real_ui_pairs,  temperature=0.2, lambda_bought=0, fake_users_num= 50):
         """Prepares training data for discriminator.
         
         Provides real user-item pairs mixed with fake user-item pairs in batches.
