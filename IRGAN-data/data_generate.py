@@ -64,7 +64,7 @@ pretrained_model = torch.load("./pretrained_models/ml-100k/pretrained_model_disc
 G.load_state_dict(pretrained_model)
 matrix_implicit = build_csr_matrix(users_list,items_list,num_users,num_items)
 
-fake_users,fake_items = dp.geneate_synthesis_data(G, train_ui,  fake_users_num= 50)
+fake_users,fake_items = dp.geneate_synthesis_data(G, train_ui,  fake_users_num= 10)
 syn_users = users_list+fake_users
 syn_items = items_list+fake_items
 syn_users_num = len(set(syn_users))
@@ -79,7 +79,7 @@ dis_TVD, dis_JS = eval_TVD_JS(real_item_distribution, fake_gan_distribution)
 print(dis_TVD)
 print(dis_JS)
 
-with open('./data/ml-100k-syn/train1.txt', 'w') as file:
+with open('./data/ml-100k-syn10/train1.txt', 'w') as file:
     # 将两个列表的元素逐行写入文件
     for item1, item2 in zip(syn_users, syn_items):
         file.write(f'{item1}\t{item2}\n')
