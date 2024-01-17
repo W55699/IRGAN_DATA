@@ -2,39 +2,6 @@ import torch
 from model import Generator
 from config import irgan_config
 from data_utils import RecDataset, DataProvider
-from scipy.sparse import csr_matrix
-from scipy.stats import entropy
-import numpy as np
-
-def build_csr_matrix(users_list,items_list,num_users,num_items):
-    implicit_rating =[]
-    for i in range(len(users_list)):
-        implicit_rating.append(1)
-    matrix_implicit = csr_matrix((implicit_rating, (users_list, items_list)), shape=(num_users, num_items))
-    return matrix_implicit
-
-def get_item_distribution(profiles):
-    # [min(max(0, round(i)), 5) for i in a]
-    profiles_T = profiles.transpose()
-    fn_count = lambda item_vec: np.array(
-    [sum([(j == i) for j in item_vec]) for i in range(2)]) / item_vec.shape[0]
-    fn_norm = lambda item_vec: np.asarray(item_vec) / np.sum(item_vec)
-    item_distribution = np.array(list(map(fn_count, profiles_T)))
-    item_distribution = np.array(list(map(fn_norm, item_distribution)))
-    return item_distribution
-
-def eval_TVD_JS(P, Q):
-    # TVD
-    dis_TVD = np.mean(np.sum(np.abs(P - Q) / 2, 1))
-    # JS
-    fn_KL = lambda p, q: entropy(p, q)
-    M = (P + Q) / 2
-    js_vec = []
-    for iid in range(P.shape[0]):
-        p, q, m = P[iid], Q[iid], M[iid]
-        js_vec.append((fn_KL(p, m) + fn_KL(q, m)) / 2)
-    dis_JS = np.mean(np.array(js_vec))
-    return dis_TVD, dis_JS
 
 epochs = irgan_config.epochs
 batch_size = irgan_config.batch_size
@@ -62,25 +29,9 @@ G = G.to(device)
 pretrained_model = torch.load("./pretrained_models/ml-100k/pretrained_model_discriminator.pkl",map_location=irgan_config.device)
 G.load_state_dict(pretrained_model)
 
-
-matrix_implicit = build_csr_matrix(users_list,items_list,max(users_list)+1,max(items_list)+1)
-
 fake_users,fake_items = dp.geneate_synthesis_data(G, train_ui,  fake_users_num= 30)
 syn_users = users_list+fake_users
 syn_items = items_list+fake_items
-syn_users_num = max(syn_users)+1
-
-
-matrix_implicit_syn = build_csr_matrix(syn_users,syn_items,syn_users_num,max(syn_items)+1)
-
-
-real_item_distribution = get_item_distribution(matrix_implicit.toarray())
-fake_gan_distribution = get_item_distribution(matrix_implicit_syn.toarray())
-dis_TVD, dis_JS = eval_TVD_JS(real_item_distribution, fake_gan_distribution)
-print(dis_TVD)
-print(dis_JS)
-
-print(max(items_list))
 
 
 with open('./data/ml-100k-syn30/train1.txt', 'w') as file:
