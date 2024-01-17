@@ -30,7 +30,8 @@ class RecDataset():
         """
         rating_train = pd.read_csv(os.path.join(dir_path,"train1.txt"), names = RATING_NAMES, sep=' ')
         rating_test = pd.read_csv(os.path.join(dir_path,"test1.txt"), names = RATING_NAMES, sep=' ')
-
+        self._rating_train_ori = rating_train
+        self._users_list, self._items_list = self._extract_users_and_items_list(self._rating_train_ori)
         
         # Build ID transformer
         user_id_transformer = self._build_df_id_transformer(rating_train.append(rating_test),"user")
@@ -74,7 +75,19 @@ class RecDataset():
         users = rating.user.unique()
         items = rating.item.unique()
         return users, items
-    
+    def _extract_users_and_items_list(self, rating):
+        """Extract users and items from rating data
+        
+        Args:
+            rating: rating records in pandas DataFrame.
+           
+        Returns:
+            users: users stored in np.ndarray 
+            items: items stored in np.ndarray
+        """
+        users_list = rating.user.tolist()
+        items_list = rating.item.tolist()
+        return users_list, items_list
     def get_interaction_records(self, method = "train"):
         '''Gets interaction records for each user
         
@@ -133,6 +146,16 @@ class RecDataset():
             return self._rating_train.user.to_numpy(), self._rating_train.item.to_numpy()
         else:
             return self._rating_test.user.to_numpy(), self._rating_test.item.to_numpy()
+        
+    def get_users_list(self):
+            return self._users_list
+    
+    def get_items_list(self):
+            return self._items_list
+            
+
+
+
             
 class DataProvider():
     """Provides training datasets
@@ -287,6 +310,7 @@ class DataProvider():
         """   
         # Get Positive Data
         real_users, real_items = real_ui_pairs
+        
         real_users = torch.tensor(real_users).to(self.device)
         real_items = torch.tensor(real_items).to(self.device)
       
