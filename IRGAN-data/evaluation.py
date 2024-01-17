@@ -13,10 +13,6 @@ def data_extract(workdir):
             items_list.append(iid)
     num_users = max(users_list)+1
     num_items = max(items_list)+1
-    
-
-    print(num_users)
-    print(num_items)
     return users_list,items_list,num_users,num_items
 
 def build_csr_matrix(users_list,items_list,num_users,num_items):
